@@ -1,4 +1,20 @@
 //! Chip flashing routine
+//!
+//! This module provides the implementation of the chip flashing routine, which is responsible for
+//! programming the code flash and EEPROM of a microcontroller chip. It includes functions for
+//! identifying the chip, checking chip information, unprotecting the code flash, erasing the chip,
+//! flashing the code, verifying the flashed code, resetting the chip, and more.
+//!
+//! The `Flashing` struct is the main entry point for using the chip flashing routine. It is
+//! generic over a `Transport` type, which represents the communication interface with the chip.
+//! The `Flashing` struct contains information about the chip, such as the chip type, unique
+//! identifier, bootloader version, and code flash protection status. It also provides methods for
+//! performing various chip flashing operations.
+//!
+//! The chip flashing routine relies on the `Transport` trait, which defines the interface for
+//! communicating with the chip. The `UsbTransport` type is a concrete implementation of the
+//! `Transport` trait that uses USB as the communication interface.
+//!
 use std::time::Duration;
 
 use anyhow::Result;

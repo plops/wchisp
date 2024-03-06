@@ -144,6 +144,8 @@ pub struct ChipDB {
 
 impl ChipDB {
     pub fn load() -> Result<Self> {
+        /// Represents a collection of chip families.
+        /// Each chip family corresponds to a specific device.
         let families: Vec<ChipFamily> = vec![
             serde_yaml::from_str(include_str!("../devices/0x10-CH56x.yaml"))?,
             serde_yaml::from_str(include_str!("../devices/0x11-CH55x.yaml"))?,
