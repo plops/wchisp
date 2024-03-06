@@ -1,4 +1,82 @@
 //! USB Transportation.
+//!
+//! This module provides USB transportation for communication with WCH ISP USB devices.
+//! It includes functionality for scanning and opening USB devices, as well as sending and receiving raw data.
+//!
+//! # Examples
+//!
+//! Scanning for USB devices:
+//!
+//! ```
+//! use wchisp::transport::usb::UsbTransport;
+//!
+//! let num_devices = UsbTransport::scan_devices().unwrap();
+//! println!("Found {} WCH ISP USB devices", num_devices);
+//! ```
+//!
+//! Opening a specific USB device:
+//!
+//! ```
+//! use wchisp::transport::usb::UsbTransport;
+//!
+//! let transport = UsbTransport::open_nth(0).unwrap();
+//! ```
+//!
+//! Sending and receiving raw data:
+//!
+//! ```
+//! use wchisp::transport::usb::UsbTransport;
+//! use std::time::Duration;
+//!
+//! let mut transport = UsbTransport::open_any().unwrap();
+//!
+//! let data = vec![0x01, 0x02, 0x03];
+//! transport.send_raw(&data).unwrap();
+//!
+//! let timeout = Duration::from_secs(1);
+//! let received_data = transport.recv_raw(timeout).unwrap();
+//! println!("Received data: {:?}", received_data);
+//! ```
+//!
+//! # Notes
+//!
+//! - This module requires the `rusb` and `anyhow` crates.
+//! - USB devices must have the vendor ID `0x4348` and product ID `0x55e0` to be recognized.
+//! - Endpoint addresses `0x02` and `0x82` are used for data transfer.
+//! - The USB timeout is set to 5000 milliseconds.
+//!
+//! For more information, refer to the [README.md](https://github.com/martin/wchisp/blob/main/README.md) file.
+//!
+//! # Safety
+//!
+//! - The USB device handle is automatically released when the `UsbTransport` object is dropped.
+//! - Communication errors are ignored when releasing the interface.
+//! - The USB device is not reset when the `UsbTransport` object is dropped.
+//!
+//! # Errors
+//!
+//! This module can return errors in the `anyhow::Result` type. Possible errors include:
+//!
+//! - Failed to initialize the USB context.
+//! - Failed to find a WCH ISP USB device.
+//! - Failed to open the USB device.
+//! - Failed to claim the USB interface.
+//! - USB endpoints not found.
+//! - Failed to send or receive data over USB.
+//!
+//! # References
+//!
+//! - [rusb crate documentation](https://docs.rs/rusb)
+//! - [anyhow crate documentation](https://docs.rs/anyhow)
+//! - [Zadig USB driver installation](https://zadig.akeo.ie)
+//! - [README.md file](https://github.com/martin/wchisp/blob/main/README.md)
+//!
+//! # See Also
+//!
+//! - [wchisp crate documentation](https://docs.rs/wchisp)
+//! - [Transport trait documentation](https://docs.rs/wchisp/0.1.0/wchisp/transport/trait.Transport.html)
+//!
+//! USB Transportation.
 use std::time::Duration;
 
 use anyhow::Result;
@@ -16,6 +94,7 @@ pub struct UsbTransport {
 }
 
 impl UsbTransport {
+    // Count the number of USB devices that match the vendor and product ID.
     pub fn scan_devices() -> Result<usize> {
         let context = Context::new()?;
 
@@ -35,7 +114,9 @@ impl UsbTransport {
             .count();
         Ok(n)
     }
-
+    // Attempt to open the nth available device, retrieve devices configuration parameters,
+    // checks first interface and its first descriptor for the required endpoints, sets
+    // the active configuration and claims the interface.
     pub fn open_nth(nth: usize) -> Result<UsbTransport> {
         let context = Context::new()?;
 
@@ -105,6 +186,7 @@ impl UsbTransport {
         Ok(UsbTransport { device_handle })
     }
 
+    // Convenience function to open the first available device
     pub fn open_any() -> Result<UsbTransport> {
         Self::open_nth(0)
     }
